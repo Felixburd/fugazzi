@@ -17,6 +17,11 @@ const geistMono = localFont({
 export const metadata: Metadata = {
   title: "Fugazzi",
   description: "Fugazzi Gem Trading Game",
+  icons: {
+    icon: '/diamond_icon.ico',
+    shortcut: '/diamond_icon.ico',
+    apple: '/diamond_icon.ico',
+  },
 };
 
 export default function RootLayout({
