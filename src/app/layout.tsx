@@ -5,7 +5,11 @@ import Header from "@/components/Header";
 import dynamic from 'next/dynamic';
 
 const CrystalBackground = dynamic(() => import('@/components/CrystalBackground'), {
-  ssr: false // Disable server-side rendering for Three.js component
+  ssr: false
+});
+
+const BackgroundAudio = dynamic(() => import('@/components/BackgroundAudio'), {
+  ssr: false
 });
 
 const geistSans = localFont({
@@ -40,6 +44,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <CrystalBackground />
+        <BackgroundAudio />
         <Header />
         <main style={{ 
           paddingTop: '72px',
