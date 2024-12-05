@@ -12,17 +12,17 @@ interface GemConfig {
 }
 
 const gemConfigs: GemConfig[] = [
-  { src: '/gems/gem1.png', baseCost: 10, riskTier: 'low' },
-  { src: '/gems/gem2.png', baseCost: 15, riskTier: 'low' },
-  { src: '/gems/gem3.png', baseCost: 20, riskTier: 'low' },
-  { src: '/gems/gem4.png', baseCost: 25, riskTier: 'low' },
-  { src: '/gems/gem5.png', baseCost: 35, riskTier: 'medium' },
-  { src: '/gems/gem6.png', baseCost: 45, riskTier: 'medium' },
-  { src: '/gems/gem8.png', baseCost: 65, riskTier: 'medium' },
-  { src: '/gems/gem10.png', baseCost: 100, riskTier: 'high' },
-  { src: '/gems/gem11.png', baseCost: 125, riskTier: 'high' },
-  { src: '/gems/gem14.png', baseCost: 250, riskTier: 'jackpot' },
-  { src: '/gems/gem16.png', baseCost: 400, riskTier: 'jackpot' }
+  { src: '/gems/gem1.png', baseCost: 10, riskTier: 'low' as const },
+  { src: '/gems/gem2.png', baseCost: 15, riskTier: 'low' as const },
+  { src: '/gems/gem3.png', baseCost: 20, riskTier: 'low' as const },
+  { src: '/gems/gem4.png', baseCost: 25, riskTier: 'low' as const },
+  { src: '/gems/gem5.png', baseCost: 35, riskTier: 'medium' as const },
+  { src: '/gems/gem6.png', baseCost: 45, riskTier: 'medium' as const },
+  { src: '/gems/gem8.png', baseCost: 65, riskTier: 'medium' as const },
+  { src: '/gems/gem10.png', baseCost: 100, riskTier: 'high' as const },
+  { src: '/gems/gem11.png', baseCost: 125, riskTier: 'high' as const },
+  { src: '/gems/gem14.png', baseCost: 250, riskTier: 'jackpot' as const },
+  { src: '/gems/gem16.png', baseCost: 400, riskTier: 'jackpot' as const }
 ].map(config => {
   let fakeChance: number;
   let minReturn: number;
@@ -64,17 +64,18 @@ const gemConfigs: GemConfig[] = [
 
 // Diamond configurations
 const diamondConfigs: GemConfig[] = [
-  { src: '/gems/diamond1.png', baseCost: 1, riskTier: 'diamond' },
-  { src: '/gems/diamond2.png', baseCost: 5, riskTier: 'diamond' }
+  { src: '/gems/diamond1.png', baseCost: 1, riskTier: 'diamond' as const },
+  { src: '/gems/diamond2.png', baseCost: 5, riskTier: 'diamond' as const }
 ].map(config => ({
   ...config,
   rewardMultiplier: 1.1 + Math.random() * 0.2, // 1.1x to 1.3x returns
   isFake: Math.random() < 0.15 // 15% chance to be fake
 }));
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
 const PADDING = 10; // % from edges
-const MIN_DISTANCE_PERCENT = 25; // Minimum distance between gems as percentage of container width
 const MAX_GEMS = 7;
+/* eslint-enable @typescript-eslint/no-unused-vars */
 
 interface Position {
   x: number;
@@ -82,20 +83,20 @@ interface Position {
 }
 
 const getRandomPosition = (existingPositions: { x: number; y: number }[]): { x: number; y: number } => {
-  const padding = 15; // Padding from edges
+  const edgePadding = 15; // Padding from edges
   let attempts = 0;
   const maxAttempts = 100;
 
   while (attempts < maxAttempts) {
-    const x = Math.random() * (100 - 2 * padding) + padding;
-    const y = Math.random() * (100 - 2 * padding) + padding;
+    const x = Math.random() * (100 - 2 * edgePadding) + edgePadding;
+    const y = Math.random() * (100 - 2 * edgePadding) + edgePadding;
 
     // Check distance from all existing gems
     const isFarEnough = existingPositions.every(pos => {
       const dx = pos.x - x;
       const dy = pos.y - y;
       const distance = Math.sqrt(dx * dx + dy * dy);
-      return distance >= MIN_DISTANCE_PERCENT;
+      return distance >= 25;
     });
 
     if (isFarEnough || attempts === maxAttempts - 1) {
@@ -105,7 +106,6 @@ const getRandomPosition = (existingPositions: { x: number; y: number }[]): { x: 
     attempts++;
   }
 
-  // If we couldn't find a good position after max attempts, try with a larger area
   return {
     x: Math.random() * 80 + 10,
     y: Math.random() * 80 + 10
@@ -387,50 +387,6 @@ const TransactionLog = () => {
   );
 };
 
-const getPriceTagPosition = (gemPosition: { x: number; y: number }) => {
-  const padding = 10; // Padding from canvas edges in pixels
-  const tagWidth = 120; // Width of the price tag in pixels
-  const tagHeight = 90; // Height of the price tag including icons in pixels
-  const tagOffset = 25; // Default offset from gem
-
-  // Determine which borders the gem is closest to
-  const isCloseToLeft = gemPosition.x < 30;
-  const isCloseToRight = gemPosition.x > 70;
-  const isCloseToTop = gemPosition.y < 30;
-  const isCloseToBottom = gemPosition.y > 70;
-
-  let x = gemPosition.x;
-  let y = gemPosition.y;
-  let placement: 'top' | 'bottom' | 'left' | 'right' = 'bottom';
-
-  // Determine optimal placement
-  if (isCloseToBottom) {
-    // If close to bottom, place above
-    y = gemPosition.y - tagOffset;
-    placement = 'top';
-  } else if (isCloseToTop) {
-    // If close to top, place below
-    y = gemPosition.y + tagOffset;
-    placement = 'bottom';
-  } else if (isCloseToRight) {
-    // If close to right, place on left
-    x = gemPosition.x - tagOffset;
-    y = gemPosition.y;
-    placement = 'left';
-  } else if (isCloseToLeft) {
-    // If close to left, place on right
-    x = gemPosition.x + tagOffset;
-    y = gemPosition.y;
-    placement = 'right';
-  } else {
-    // Default to below if not close to any edge
-    y = gemPosition.y + tagOffset;
-    placement = 'bottom';
-  }
-
-  return { x, y, placement };
-};
-
 const getTagStyles = (position: Position) => {
   const baseStyles = {
     position: 'absolute' as const,
@@ -471,31 +427,16 @@ const getTagStyles = (position: Position) => {
 
 const GemSpawner: React.FC = () => {
   const [gems, setGems] = useState<Gem[]>([]);
-  const [gameOver, setGameOver] = useState(false);
-  const [gemSize, setGemSize] = useState(50);
-  const [balance, setBalance] = useState(() => {
-    const savedBalance = localStorage.getItem('gameBalance');
-    return savedBalance ? parseFloat(savedBalance) : 100;
-  });
+  const [selectedGemIndex, setSelectedGemIndex] = useState<number | null>(null);
+  const [balance, setBalance] = useState(200);
   const [lastReward, setLastReward] = useState<string | null>(null);
+  const [gameOver, setGameOver] = useState(false);
+  const [flashState, setFlashState] = useState<'success' | 'fail' | null>(null);
   const [zoom, setZoom] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [selectedGemIndex, setSelectedGemIndex] = useState<number | null>(null);
-  const [flashState, setFlashState] = useState<'none' | 'success' | 'fail'>('none');
-  const containerRef = useRef<HTMLDivElement>(null);
   const isDraggingRef = useRef(false);
-  const lastPositionRef = useRef({ x: 0, y: 0 });
-
-  // Save balance to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('gameBalance', balance.toString());
-  }, [balance]);
-
-  const updateGemSize = useCallback(() => {
-    const containerWidth = Math.min(window.innerWidth, 800);
-    const newSize = Math.max(30, Math.floor(containerWidth * 0.075));
-    setGemSize(newSize);
-  }, []);
+  const lastMousePosRef = useRef({ x: 0, y: 0 });
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const handleWheel = useCallback((e: WheelEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -514,15 +455,15 @@ const GemSpawner: React.FC = () => {
   const handleMouseDown = useCallback((e: MouseEvent<HTMLDivElement>) => {
     if (e.button !== 0) return; // Only left click
     isDraggingRef.current = true;
-    lastPositionRef.current = { x: e.clientX, y: e.clientY };
+    lastMousePosRef.current = { x: e.clientX, y: e.clientY };
   }, []);
 
   const handleMouseMove = useCallback((e: MouseEvent<HTMLDivElement>) => {
     if (!isDraggingRef.current) return;
 
-    const deltaX = e.clientX - lastPositionRef.current.x;
-    const deltaY = e.clientY - lastPositionRef.current.y;
-    lastPositionRef.current = { x: e.clientX, y: e.clientY };
+    const deltaX = e.clientX - lastMousePosRef.current.x;
+    const deltaY = e.clientY - lastMousePosRef.current.y;
+    lastMousePosRef.current = { x: e.clientX, y: e.clientY };
 
     setPosition(prev => {
       const container = containerRef.current;
@@ -548,25 +489,28 @@ const GemSpawner: React.FC = () => {
   }, [zoom]);
 
   useEffect(() => {
-    updateGemSize();
-    window.addEventListener('resize', updateGemSize);
     window.addEventListener('mouseup', handleMouseUp);
     window.addEventListener('mouseleave', handleMouseUp);
     
     return () => {
-      window.removeEventListener('resize', updateGemSize);
       window.removeEventListener('mouseup', handleMouseUp);
       window.removeEventListener('mouseleave', handleMouseUp);
     };
-  }, [updateGemSize, handleMouseUp]);
+  }, [handleMouseUp]);
 
   const initializeGems = useCallback(() => {
     const selectedGems = getRandomGems(7); // Always spawn 7 gems with balanced risk distribution
-    const newGems = selectedGems.map(config => ({
-      ...config,
-      position: getRandomPosition([]),
-      rotation: Math.random() * 360,
-    }));
+    const positions: Position[] = [];
+    const newGems = selectedGems.map(config => {
+      const position = getRandomPosition(positions);
+      positions.push(position);
+      return {
+        ...config,
+        position,
+        rotation: Math.random() * 360,
+        scale: config.riskTier === 'diamond' ? 0.6 : 1,
+      } as Gem;
+    });
     setGems(newGems);
   }, []);
 
@@ -582,6 +526,11 @@ const GemSpawner: React.FC = () => {
     setSelectedGemIndex(index);
   };
 
+  // Save balance to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('gameBalance', balance.toString());
+  }, [balance]);
+
   const handleConfirm = (index: number) => {
     const clickedGem = gems[index];
     setBalance(prev => prev - clickedGem.baseCost);
@@ -590,7 +539,7 @@ const GemSpawner: React.FC = () => {
       setFlashState('fail');
       setTimeout(() => {
         setGameOver(true);
-        setFlashState('none');
+        setFlashState(null);
       }, 300); // Flash duration
     } else {
       setFlashState('success');
@@ -598,7 +547,7 @@ const GemSpawner: React.FC = () => {
       setBalance(prev => prev + reward);
       setLastReward(`+${formatCurrency(reward, true)} (${formatPercentage(clickedGem.rewardMultiplier)})`);
       setGems((prevGems) => prevGems.filter((_, i) => i !== index));
-      setTimeout(() => setFlashState('none'), 300); // Flash duration
+      setTimeout(() => setFlashState(null), 300); // Flash duration
     }
     setSelectedGemIndex(null);
   };
@@ -611,50 +560,6 @@ const GemSpawner: React.FC = () => {
     setGameOver(false);
     setLastReward(null);
     initializeGems();
-  };
-
-  const getPriceTagPosition = (gemPosition: { x: number; y: number }) => {
-    const padding = 10; // Padding from canvas edges in pixels
-    const tagWidth = 120; // Width of the price tag in pixels
-    const tagHeight = 90; // Height of the price tag including icons in pixels
-    const tagOffset = 25; // Default offset from gem
-
-    // Determine which borders the gem is closest to
-    const isCloseToLeft = gemPosition.x < 30;
-    const isCloseToRight = gemPosition.x > 70;
-    const isCloseToTop = gemPosition.y < 30;
-    const isCloseToBottom = gemPosition.y > 70;
-
-    let x = gemPosition.x;
-    let y = gemPosition.y;
-    let placement: 'top' | 'bottom' | 'left' | 'right' = 'bottom';
-
-    // Determine optimal placement
-    if (isCloseToBottom) {
-      // If close to bottom, place above
-      y = gemPosition.y - tagOffset;
-      placement = 'top';
-    } else if (isCloseToTop) {
-      // If close to top, place below
-      y = gemPosition.y + tagOffset;
-      placement = 'bottom';
-    } else if (isCloseToRight) {
-      // If close to right, place on left
-      x = gemPosition.x - tagOffset;
-      y = gemPosition.y;
-      placement = 'left';
-    } else if (isCloseToLeft) {
-      // If close to left, place on right
-      x = gemPosition.x + tagOffset;
-      y = gemPosition.y;
-      placement = 'right';
-    } else {
-      // Default to below if not close to any edge
-      y = gemPosition.y + tagOffset;
-      placement = 'bottom';
-    }
-
-    return { x, y, placement };
   };
 
   const handleResetBalance = () => {
@@ -892,8 +797,6 @@ const GemSpawner: React.FC = () => {
                         ...getTagStyles(gem.position),
                         opacity: isSelected ? 1 : 0,
                         pointerEvents: isSelected ? 'auto' : 'none',
-                        transform: `translateX(-50%) scale(${1/gem.scale})`,
-                        transformOrigin: 'top',
                       }}
                     >
                       <div>{formatCurrency(gem.baseCost, false)}</div>
