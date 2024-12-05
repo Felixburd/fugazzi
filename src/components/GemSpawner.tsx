@@ -191,9 +191,11 @@ const getRandomGems = (count: number) => {
 };
 
 const DollarIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{
+    filter: 'drop-shadow(0 0 4px rgba(255, 215, 0, 0.5))',
+  }}>
     <path d="M12 2V22M17 5H9.5C8.57174 5 7.6815 5.36875 7.02513 6.02513C6.36875 6.6815 6 7.57174 6 8.5C6 9.42826 6.36875 10.3185 7.02513 10.9749C7.6815 11.6313 8.57174 12 9.5 12H14.5C15.4283 12 16.3185 12.3687 16.9749 13.0251C17.6313 13.6815 18 14.5717 18 15.5C18 16.4283 17.6313 17.3185 16.9749 17.9749C16.3185 18.6313 15.4283 19 14.5 19H6" 
-      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      stroke="#FFD700" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 );
 
@@ -533,22 +535,27 @@ const GemSpawner: React.FC = () => {
 
   const handleConfirm = (index: number) => {
     const clickedGem = gems[index];
+    
+    // Deduct cost first
     setBalance(prev => prev - clickedGem.baseCost);
 
-    if (clickedGem.isFake) {
-      setFlashState('fail');
-      setTimeout(() => {
-        setGameOver(true);
-        setFlashState(null);
-      }, 300); // Flash duration
-    } else {
-      setFlashState('success');
-      const reward = clickedGem.baseCost * clickedGem.rewardMultiplier;
+    if (!clickedGem.isFake) {
+      // Correct real gem - add reward
+      const reward = Math.floor(clickedGem.baseCost * clickedGem.rewardMultiplier);
       setBalance(prev => prev + reward);
-      setLastReward(`+${formatCurrency(reward, true)} (${formatPercentage(clickedGem.rewardMultiplier)})`);
-      setGems((prevGems) => prevGems.filter((_, i) => i !== index));
-      setTimeout(() => setFlashState(null), 300); // Flash duration
+      setLastReward(`+${formatCurrency(reward, true)}`);
+      setFlashState('success');
+      
+      // Remove the gem
+      const newGems = [...gems];
+      newGems.splice(index, 1);
+      setGems(newGems);
+    } else {
+      // Wrong call on Fugazzi - game over
+      setGameOver(true);
+      setFlashState('fail');
     }
+    
     setSelectedGemIndex(null);
   };
 
@@ -580,6 +587,8 @@ const GemSpawner: React.FC = () => {
 
   const handleFugazziCall = (index: number) => {
     const clickedGem = gems[index];
+    
+    // Deduct cost first
     setBalance(prev => prev - clickedGem.baseCost);
 
     if (clickedGem.isFake) {
@@ -588,11 +597,17 @@ const GemSpawner: React.FC = () => {
       setBalance(prev => prev + reward);
       setLastReward(`+${formatCurrency(reward, true)} (Fugazzi Bonus!)`);
       setFlashState('success');
+      
+      // Remove the gem
+      const newGems = [...gems];
+      newGems.splice(index, 1);
+      setGems(newGems);
     } else {
       // Wrong Fugazzi call - game over
       setGameOver(true);
       setFlashState('fail');
     }
+    
     setSelectedGemIndex(null);
   };
 

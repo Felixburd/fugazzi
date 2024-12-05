@@ -3,20 +3,34 @@
 import { useState, useEffect, useRef } from 'react';
 
 const BackgroundAudio = () => {
-  const [isMuted, setIsMuted] = useState(true); // Start muted by default
+  const [isMuted, setIsMuted] = useState(true);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
+    // Initialize audio when component mounts
     if (audioRef.current) {
-      audioRef.current.volume = isMuted ? 0 : 0.1; // Low volume when unmuted
-      if (!isMuted) {
-        audioRef.current.play().catch(console.error);
-      }
+      audioRef.current.volume = 0.1;
     }
-  }, [isMuted]);
+  }, []);
 
   const toggleMute = () => {
+    if (!audioRef.current) return;
+
     setIsMuted(!isMuted);
+    
+    if (isMuted) {
+      // Unmuting
+      audioRef.current.volume = 0.1;
+      audioRef.current.play().catch(error => {
+        console.error('Error playing audio:', error);
+        // If autoplay is blocked, keep it muted
+        setIsMuted(true);
+      });
+    } else {
+      // Muting
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
   };
 
   return (
@@ -41,6 +55,7 @@ const BackgroundAudio = () => {
           height: '24px',
           opacity: 0.5,
           transition: 'opacity 0.2s ease',
+          padding: 0,
         }}
         onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
         onMouseLeave={e => (e.currentTarget.style.opacity = '0.5')}
