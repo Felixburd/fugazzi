@@ -2,6 +2,11 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import Header from "@/components/Header";
+import dynamic from 'next/dynamic';
+
+const CrystalBackground = dynamic(() => import('@/components/CrystalBackground'), {
+  ssr: false // Disable server-side rendering for Three.js component
+});
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -34,13 +39,33 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <CrystalBackground />
         <Header />
         <main style={{ 
-          paddingTop: '72px', // Header height + some spacing
+          paddingTop: '72px',
           minHeight: '100vh',
+          position: 'relative',
+          zIndex: 1,
         }}>
           {children}
         </main>
+        <footer style={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          width: '100%',
+          padding: '0.75rem',
+          background: 'rgba(0, 0, 0, 0.85)',
+          color: 'rgba(255, 255, 255, 0.5)',
+          fontSize: '0.75rem',
+          fontFamily: 'var(--font-geist-mono)',
+          zIndex: 1,
+          textAlign: 'center',
+          backdropFilter: 'blur(5px)',
+          borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+        }}>
+          Félix Burt © 2024
+        </footer>
       </body>
     </html>
   );
